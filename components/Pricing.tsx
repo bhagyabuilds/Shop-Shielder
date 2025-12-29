@@ -12,10 +12,11 @@ const Pricing: React.FC<PricingProps> = ({ onSelectPlan }) => {
   const plans = [
     {
       id: SubscriptionPlan.STANDARD,
-      name: 'Standard Shield',
+      name: 'Store Shield',
       price: interval === BillingInterval.MONTHLY ? 20 : 16,
-      description: 'The essential compliance suite for modern E-commerce stores.',
+      description: 'Complete compliance suite for a single E-commerce storefront.',
       features: [
+        'Single Store License',
         'Privacy Policy (CCPA/GDPR)',
         'Terms of Service',
         'Return & Refund Policy',
@@ -27,13 +28,13 @@ const Pricing: React.FC<PricingProps> = ({ onSelectPlan }) => {
     },
     {
       id: SubscriptionPlan.CUSTOM,
-      name: 'Custom Package',
+      name: 'Enterprise / Custom',
       price: 'Tailored',
-      description: 'Bespoke legal architecture for complex business needs.',
+      description: 'Bespoke legal architecture for multi-store brands and complex needs.',
       features: [
-        'Everything in Standard',
-        'White-glove Setup',
         'Multi-Store Support',
+        'Everything in Store Shield',
+        'White-glove AI Setup',
         'Dedicated Support Rep',
         'Custom Legal Disclosures',
         'API Compliance Monitoring'
@@ -41,6 +42,16 @@ const Pricing: React.FC<PricingProps> = ({ onSelectPlan }) => {
       highlight: false
     }
   ];
+
+  const handleAction = (planId: SubscriptionPlan) => {
+    if (planId === SubscriptionPlan.CUSTOM) {
+      const subject = encodeURIComponent("Custom Compliance Package Inquiry");
+      const body = encodeURIComponent("Hello Shop Shielder Team,\n\nI am interested in a tailored compliance package for my business. Here are my requirements:\n\nStore URL:\nMonthly Order Volume:\nSpecific Needs:");
+      window.location.href = `mailto:hello@shopshielder.com?subject=${subject}&body=${body}`;
+    } else {
+      onSelectPlan(planId, interval);
+    }
+  };
 
   return (
     <div className="max-w-5xl mx-auto px-6">
@@ -74,7 +85,7 @@ const Pricing: React.FC<PricingProps> = ({ onSelectPlan }) => {
           >
             {plan.highlight && (
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] border border-emerald-500/30 whitespace-nowrap">
-                Complete Coverage
+                Single Store Protection
               </div>
             )}
             <div className={`text-xs font-black uppercase tracking-[0.2em] mb-6 ${plan.highlight ? 'text-emerald-200' : 'text-emerald-600'}`}>
@@ -106,14 +117,14 @@ const Pricing: React.FC<PricingProps> = ({ onSelectPlan }) => {
             </ul>
 
             <button 
-              onClick={() => onSelectPlan(plan.id, interval)}
+              onClick={() => handleAction(plan.id)}
               className={`w-full py-5 rounded-2xl font-black text-sm uppercase tracking-[0.2em] transition-all ${
                 plan.highlight 
                   ? 'bg-white text-emerald-900 hover:bg-emerald-50 shadow-lg' 
                   : 'bg-slate-900 text-white hover:bg-emerald-600 shadow-xl shadow-slate-100'
               }`}
             >
-              Select Plan
+              {plan.id === SubscriptionPlan.CUSTOM ? 'Contact Sales' : 'Select Plan'}
             </button>
           </div>
         ))}

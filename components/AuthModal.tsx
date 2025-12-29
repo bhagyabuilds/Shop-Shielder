@@ -1,20 +1,31 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../services/supabase';
 
 interface AuthModalProps {
   onClose: () => void;
+  initialEmail?: string;
+  initialStoreUrl?: string;
 }
 
-const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
+const AuthModal: React.FC<AuthModalProps> = ({ onClose, initialEmail, initialStoreUrl }) => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [storeUrl, setStoreUrl] = useState('');
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (initialEmail) setEmail(initialEmail);
+    if (initialStoreUrl) {
+      setStoreUrl(initialStoreUrl);
+      setIsSignUp(true);
+    }
+  }, [initialEmail, initialStoreUrl]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,8 +48,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
           }
         });
         if (error) throw error;
-        alert('Check your email for the confirmation link from Shop Shielder!');
-        onClose();
+        setSuccess(true);
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
@@ -53,6 +63,24 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
       setLoading(false);
     }
   };
+
+  if (success) {
+    return (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+        <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={onClose} />
+        <div className="relative w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl p-12 text-center animate-in zoom-in duration-300">
+          <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-inner">
+            <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3"/></svg>
+          </div>
+          <h2 className="text-3xl font-black text-slate-900 mb-4">Registration Sent!</h2>
+          <p className="text-slate-500 font-medium leading-relaxed mb-10">We've sent a verification link to <strong className="text-slate-900">{email}</strong>. Please confirm your email to start your store audit.</p>
+          <button onClick={onClose} className="w-full py-5 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-emerald-600 transition-all">
+            Understood
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
@@ -97,7 +125,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
             {isSignUp && (
               <div>
                 <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Store URL</label>
-                <input required type="text" value={storeUrl} onChange={e => setStoreUrl(e.target.value)} className="w-full px-5 py-4 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-2 focus:ring-emerald-500/20 transition-all outline-none font-bold text-sm" placeholder="mystore.shopify.com" />
+                <input required type="text" value={storeUrl} onChange={e => setStoreUrl(e.target.value)} className="w-full px-5 py-4 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-2 focus:ring-emerald-500/20 transition-all outline-none font-bold text-sm" placeholder="mystore.com" />
               </div>
             )}
 

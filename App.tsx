@@ -12,6 +12,7 @@ const App: React.FC = () => {
   const [session, setSession] = useState<any>(null);
   const [isCheckingOut, setIsCheckingOut] = useState<{ plan: SubscriptionPlan; interval: BillingInterval } | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [initialAuthData, setInitialAuthData] = useState<{ email: string, storeUrl: string } | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -85,6 +86,11 @@ const App: React.FC = () => {
     }
   };
 
+  const handleOpenLogin = (data?: { email: string, storeUrl: string }) => {
+    setInitialAuthData(data);
+    setIsAuthModalOpen(true);
+  };
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setUser(null);
@@ -119,7 +125,7 @@ const App: React.FC = () => {
         <Dashboard user={user} onLogout={handleLogout} />
       ) : (
         <LandingPage 
-          onLogin={() => setIsAuthModalOpen(true)} 
+          onLogin={handleOpenLogin} 
           onSelectPlan={handleStartCheckout} 
           session={session}
         />
@@ -128,6 +134,8 @@ const App: React.FC = () => {
       {isAuthModalOpen && (
         <AuthModal 
           onClose={() => setIsAuthModalOpen(false)} 
+          initialEmail={initialAuthData?.email}
+          initialStoreUrl={initialAuthData?.storeUrl}
         />
       )}
     </div>
