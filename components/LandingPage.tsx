@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { SubscriptionPlan, BillingInterval } from '../types';
 import Pricing from './Pricing';
 import LegalOverlay from './LegalOverlay';
+import { generateStoreRiskScore } from '../services/complianceEngine';
 
 interface LandingPageProps {
   onLogin: (initialData?: { email: string, storeUrl: string }) => void;
@@ -19,6 +20,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSelectPlan, sessio
   const [scanStep, setScanStep] = useState(0);
   const [showScanResult, setShowScanResult] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [dynamicScore, setDynamicScore] = useState(64);
 
   const scanSteps = [
     "Initializing Shop Shielder engine...",
@@ -32,6 +34,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSelectPlan, sessio
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (storeUrl.trim() && email.trim()) {
+      setDynamicScore(generateStoreRiskScore(storeUrl));
       setIsScanning(true);
       setScanStep(0);
     }
@@ -245,7 +248,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSelectPlan, sessio
               <div className="bg-white rounded-[2rem] md:rounded-[3rem] p-8 md:p-12 shadow-2xl animate-in slide-in-from-bottom-12 duration-700">
                 <div className="flex flex-col md:flex-row items-center justify-center md:space-x-4 mb-8">
                   <div className="w-16 h-16 md:w-20 md:h-20 bg-amber-50 rounded-2xl md:rounded-[2rem] flex items-center justify-center text-amber-500 text-2xl md:text-3xl font-black mb-4 md:mb-0">
-                    64%
+                    {dynamicScore}%
                   </div>
                   <div className="text-center md:text-left">
                     <h4 className="text-slate-900 text-xl md:text-2xl font-black tracking-tight leading-none">Risk Identified</h4>

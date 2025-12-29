@@ -7,6 +7,13 @@ export interface ComplianceScore {
   policies: number;
 }
 
+export interface SyncStatus {
+  lastSync: string;
+  currentVersion: string;
+  isAutoSyncEnabled: boolean;
+  status: 'optimal' | 'syncing' | 'update_available';
+}
+
 export interface RiskItem {
   id: string;
   category: 'Privacy' | 'Accessibility' | 'Product Safety' | 'Policies';

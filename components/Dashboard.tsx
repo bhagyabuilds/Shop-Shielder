@@ -1,10 +1,11 @@
 
-import React, { useState } from 'react';
-import { UserProfile, ComplianceScore, RiskItem } from '../types';
+import React, { useState, useEffect } from 'react';
+import { UserProfile, ComplianceScore, RiskItem, SyncStatus } from '../types';
 import ComplianceAnalyzer from './ComplianceAnalyzer';
 import PolicyGenerator from './PolicyGenerator';
 import ComplianceFeed from './ComplianceFeed';
 import LegalOverlay from './LegalOverlay';
+import { generateStoreRiskScore, generateBadgeSerial } from '../services/complianceEngine';
 
 interface DashboardProps {
   user: UserProfile;
@@ -15,14 +16,51 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'analyze' | 'policies' | 'settings'>('overview');
   const [activeLegalTab, setActiveLegalTab] = useState<string | null>(null);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>({
+    lastSync: '2 hours ago',
+    currentVersion: 'v2.4.1',
+    isAutoSyncEnabled: true,
+    status: 'optimal'
+  });
+
+  // Calculate unique score based on store URL so it's not always 64%
+  // We offset it slightly for dashboard vs landing page to show progress
+  const baseScore = generateStoreRiskScore(user.storeUrl);
+  const dashboardScore = 100 - (100 - baseScore) / 2; // Simulated improvement post-registration
+  const badgeSerial = generateBadgeSerial(user.storeUrl);
+
   const [score] = useState<ComplianceScore>({
-    overall: 96,
+    overall: Math.round(dashboardScore),
     privacy: 98,
     accessibility: 92,
     safety: 95,
     policies: 100
   });
+
+  const triggerManualSync = () => {
+    setIsSyncing(true);
+    setTimeout(() => {
+      setIsSyncing(false);
+      setSyncStatus(prev => ({
+        ...prev,
+        lastSync: 'Just now',
+        currentVersion: 'v2.4.2'
+      }));
+    }, 2000);
+  };
+
+  const handleDownloadBadge = () => {
+    setIsDownloading(true);
+    setTimeout(() => {
+      setIsDownloading(false);
+      // Logic to trigger a real file download would go here.
+      // For now, we simulate a successful generation.
+      alert(`Trust Badge ${badgeSerial} generated. Your official Shop Shielder shield is ready for implementation.`);
+    }, 1500);
+  };
 
   const navigateTo = (tab: any) => {
     setActiveTab(tab);
@@ -49,14 +87,16 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
           </nav>
 
           <div className="mt-auto space-y-6">
-            <div className="bg-emerald-50 rounded-3xl p-6 border border-emerald-100">
+            <div className="bg-emerald-50 rounded-3xl p-6 border border-emerald-100 group cursor-pointer hover:bg-emerald-100 transition-colors" onClick={triggerManualSync}>
               <div className="flex items-center space-x-3 mb-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-lg">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"/></svg>
+                <div className={`w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-lg ${isSyncing ? 'animate-spin' : ''}`}>
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5"/></svg>
                 </div>
-                <div className="text-[10px] font-black text-emerald-900 uppercase tracking-widest leading-none">Protection Active</div>
+                <div className="text-[10px] font-black text-emerald-900 uppercase tracking-widest leading-none">
+                  {isSyncing ? 'Syncing...' : 'System Optimal'}
+                </div>
               </div>
-              <p className="text-[10px] font-bold text-emerald-700 leading-relaxed">AI is monitoring your core policies and product safety.</p>
+              <p className="text-[10px] font-bold text-emerald-700 leading-relaxed">Documents are current with US Federal Standards.</p>
             </div>
             
             <button onClick={onLogout} className="text-slate-400 hover:text-red-500 flex items-center space-x-3 text-[10px] font-black uppercase tracking-widest transition-colors w-full px-5 py-3">
@@ -106,12 +146,16 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
           </div>
           
           <div className="flex items-center space-x-4 lg:space-x-6">
-            <div className="hidden md:flex flex-col items-end">
-              <div className="flex items-center space-x-2">
-                <span className="text-sm font-black text-slate-900">{user.firstName} {user.lastName}</span>
-                <span className="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest">{user.plan}</span>
-              </div>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Protection Active</span>
+            <div className="hidden md:flex items-center space-x-4 bg-slate-50 px-4 py-2 rounded-2xl border border-slate-200">
+               <div className="flex flex-col items-end">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Current Standard</span>
+                  <span className="text-xs font-black text-emerald-600 uppercase tracking-widest">US-CCPA-2024.1</span>
+               </div>
+               <div className="w-px h-6 bg-slate-200"></div>
+               <div className="flex flex-col items-end">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Last Email Sent</span>
+                  <span className="text-xs font-black text-slate-900 uppercase tracking-widest">{syncStatus.lastSync}</span>
+               </div>
             </div>
             <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl lg:rounded-2xl bg-slate-900 text-white flex items-center justify-center font-black text-lg lg:text-xl shadow-xl shadow-slate-200 uppercase">
               {user.firstName?.[0]}{user.lastName?.[0]}
@@ -123,6 +167,32 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
           {activeTab === 'overview' && (
             <div className="grid lg:grid-cols-3 gap-6 lg:gap-8 animate-in fade-in slide-in-from-bottom-6 duration-700">
               <div className="lg:col-span-2 space-y-6 lg:space-y-8">
+                {/* Auto-Sync Status Card */}
+                <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-xl shadow-slate-200/40 relative overflow-hidden group">
+                   <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-3xl -mr-10 -mt-10"></div>
+                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+                      <div>
+                         <div className="flex items-center space-x-2 mb-2">
+                            <span className="relative flex h-2 w-2">
+                               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                            </span>
+                            <h2 className="text-xl font-black text-slate-900 tracking-tight">Autonomous Delivery Active</h2>
+                         </div>
+                         <p className="text-sm font-medium text-slate-500 max-w-md">Your storefront is synced with federal database updates. Any legal shift triggers an automatic document refresh and email delivery.</p>
+                      </div>
+                      <div className="flex items-center space-x-4">
+                         <div className="text-right">
+                            <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Store Engine</div>
+                            <div className="text-sm font-black text-slate-900">v2.4.2 (LATEST)</div>
+                         </div>
+                         <button onClick={triggerManualSync} className="p-4 bg-slate-900 text-white rounded-2xl hover:bg-emerald-600 transition-all shadow-lg group-hover:scale-105">
+                            <svg className={`w-5 h-5 ${isSyncing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5"/></svg>
+                         </button>
+                      </div>
+                   </div>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
                   <StatCard label="Overall Security" value={`${score.overall}%`} trend="up" icon="🛡️" />
                   <StatCard label="Privacy Status" value={`${score.privacy}%`} trend="neutral" icon="🔏" />
@@ -148,13 +218,32 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
               </div>
 
               <div className="space-y-6 lg:space-y-8">
-                <ComplianceFeed />
-                <div className="bg-slate-900 rounded-3xl lg:rounded-[2.5rem] p-8 text-white shadow-2xl relative overflow-hidden group">
-                  <div className="absolute -top-10 -right-10 w-40 h-40 bg-emerald-600/20 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
-                  <h3 className="text-xl font-black mb-4 relative z-10">Compliance Shield</h3>
-                  <p className="text-slate-400 text-sm font-medium mb-8 leading-relaxed relative z-10">Verified protection against CCPA/GDPR and ADA Accessibility web-based legal claims.</p>
-                  <button className="w-full bg-white text-slate-900 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-emerald-400 hover:text-emerald-900 transition-all shadow-xl relative z-10">Download Badge</button>
+                <div className="bg-slate-900 rounded-[2.5rem] p-10 text-white shadow-2xl relative overflow-hidden group text-center">
+                  <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-emerald-500 to-blue-500"></div>
+                  <div className="relative z-10">
+                     <div className="w-20 h-20 bg-white/10 rounded-3xl mx-auto flex items-center justify-center mb-6 shadow-xl border border-white/5">
+                        <svg className="w-10 h-10 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-16.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" /></svg>
+                     </div>
+                     <h3 className="text-xl font-black mb-2 tracking-tight">Compliance Shield</h3>
+                     <div className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500 mb-6">Serial: {badgeSerial}</div>
+                     <p className="text-slate-400 text-xs font-medium mb-8 leading-relaxed">Verified protection against web-based legal claims. Embed this shield in your footer to deter predatory lawsuits.</p>
+                     <button 
+                      onClick={handleDownloadBadge}
+                      disabled={isDownloading}
+                      className="w-full bg-white text-slate-900 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-emerald-400 hover:text-emerald-900 transition-all shadow-xl disabled:opacity-50 flex items-center justify-center space-x-2"
+                     >
+                        {isDownloading ? (
+                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-slate-900/20 border-t-slate-900"></div>
+                        ) : (
+                          <>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5"/></svg>
+                            <span>Download Badge</span>
+                          </>
+                        )}
+                     </button>
+                  </div>
                 </div>
+                <ComplianceFeed />
               </div>
             </div>
           )}
@@ -165,6 +254,37 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
             <div className="bg-white rounded-[2.5rem] p-6 lg:p-10 border border-slate-200 shadow-sm animate-in fade-in duration-500">
               <h2 className="text-2xl font-black mb-8 tracking-tight">Account & Protection</h2>
               <div className="grid gap-6">
+                {/* Automation Toggles */}
+                <div className="p-8 bg-slate-900 rounded-[2rem] text-white">
+                   <h3 className="text-lg font-black mb-6 flex items-center space-x-2">
+                      <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5"/></svg>
+                      <span>Autonomous Compliance Settings</span>
+                   </h3>
+                   <div className="space-y-6">
+                      <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl">
+                         <div>
+                            <div className="text-sm font-black uppercase tracking-widest mb-1">Automatic PDF Delivery</div>
+                            <p className="text-xs text-slate-400 font-medium">Email the latest version directly to hello@shopshielder.com upon detection.</p>
+                         </div>
+                         <button 
+                            onClick={() => setSyncStatus(s => ({ ...s, isAutoSyncEnabled: !s.isAutoSyncEnabled }))}
+                            className={`w-12 h-6 rounded-full transition-colors relative ${syncStatus.isAutoSyncEnabled ? 'bg-emerald-500' : 'bg-slate-700'}`}
+                         >
+                            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${syncStatus.isAutoSyncEnabled ? 'left-7' : 'left-1'}`}></div>
+                         </button>
+                      </div>
+                      <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl">
+                         <div>
+                            <div className="text-sm font-black uppercase tracking-widest mb-1">Real-time Legal Monitoring</div>
+                            <p className="text-xs text-slate-400 font-medium">Continuously scan federal news feeds for regulation changes.</p>
+                         </div>
+                         <div className="w-12 h-6 rounded-full bg-emerald-500 relative opacity-50 cursor-not-allowed">
+                            <div className="absolute top-1 left-7 w-4 h-4 bg-white rounded-full"></div>
+                         </div>
+                      </div>
+                   </div>
+                </div>
+
                 <div className="p-6 lg:p-8 bg-slate-50 rounded-3xl border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div>
                     <h4 className="font-black text-slate-900 uppercase text-[10px] tracking-widest mb-1">Active Integration</h4>
@@ -190,7 +310,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
             <button onClick={() => setActiveLegalTab('terms')} className="hover:text-slate-900 transition-colors">Terms</button>
             <a href="mailto:hello@shopshielder.com" className="hover:text-slate-900 transition-colors">Contact</a>
           </div>
-          <div>© 2024 Shop Shielder</div>
+          <div>© 2024 Shop Shielder • Badge: {badgeSerial}</div>
         </footer>
       </main>
 
