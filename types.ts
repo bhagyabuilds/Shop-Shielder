@@ -1,0 +1,39 @@
+
+export interface ComplianceScore {
+  overall: number;
+  privacy: number;
+  accessibility: number;
+  safety: number;
+  policies: number;
+}
+
+export interface RiskItem {
+  id: string;
+  category: 'Privacy' | 'Accessibility' | 'Product Safety' | 'Policies';
+  severity: 'high' | 'medium' | 'low';
+  message: string;
+  recommendation: string;
+}
+
+export enum SubscriptionPlan {
+  STANDARD = 'STANDARD',
+  CUSTOM = 'CUSTOM'
+}
+
+export enum BillingInterval {
+  MONTHLY = 'MONTHLY',
+  YEARLY = 'YEARLY'
+}
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  storeUrl: string;
+  storeName: string;
+  onboarded: boolean;
+  isPaid: boolean;
+  plan?: SubscriptionPlan;
+  interval?: BillingInterval;
+}
