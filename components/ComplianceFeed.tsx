@@ -3,20 +3,20 @@ import React, { useState, useEffect } from 'react';
 
 const ComplianceFeed: React.FC = () => {
   const [updates, setUpdates] = useState([
-    { id: 1, type: 'AUTO-SYNC', message: 'New CCPA v2.4 detected. Privacy policy updated and emailed to user.', time: 'Just now' },
-    { id: 2, type: 'POLICY', message: 'Standard Terms of Service generated for US market.', time: '12m ago' },
-    { id: 3, type: 'ADA', message: 'Accessibility statement verified for WCAG 2.1.', time: '1h ago' },
+    { id: 1, type: 'AUTO-SYNC', message: 'Federal Law Registry Scan: No new CCPA changes detected for v2.4.', time: 'Just now' },
+    { id: 2, type: 'POLICY', message: 'Privacy policy integrity verified against storefront structure.', time: '12m ago' },
+    { id: 3, type: 'ADA', message: 'Accessibility scan: 0 critical contrast issues found on homepage.', time: '1h ago' },
   ]);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      const types = ['AUTO-SYNC', 'POLICY', 'SAFETY', 'ADA'];
+      const types = ['AUTO-SYNC', 'POLICY', 'SAFETY', 'SCAN'];
       const msgs = [
-        'Federal legal update detected. Syncing store policies...',
-        'Policy v2.4.2 dispatched to user mailbox successfully.',
-        'Accessibility scan: 99/100 for mobile checkout view.',
-        'Privacy patch applied for 2024 California Privacy Rights.',
-        'ADA font contrast check completed: Passed.'
+        'Federal Law Pulse: Scanning for new FTC consumer guidelines...',
+        'Policy Integrity Check: Current versions match federal requirements.',
+        'Automated Store Scan: Accessibility contrast ratios are optimal.',
+        'Registry Sync: State-level privacy statutes are unchanged.',
+        'ADA Monitor: Checking checkout flow for screen-reader compliance...'
       ];
       const selectedType = types[Math.floor(Math.random() * types.length)];
       const newUpdate = {
@@ -26,7 +26,7 @@ const ComplianceFeed: React.FC = () => {
         time: 'Just now'
       };
       setUpdates(prev => [newUpdate, ...prev.slice(0, 4)]);
-    }, 15000);
+    }, 12000); // Faster updates for higher perceived value
     return () => clearInterval(interval);
   }, []);
 
@@ -38,9 +38,9 @@ const ComplianceFeed: React.FC = () => {
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
           </span>
-          <span>Automated Delivery</span>
+          <span>System Activity</span>
         </h3>
-        <button className="text-[10px] font-black uppercase text-slate-400 hover:text-emerald-600 transition-colors">History</button>
+        <div className="text-[9px] font-black uppercase text-emerald-600 animate-pulse">Live Tracking</div>
       </div>
       
       <div className="space-y-6">
@@ -62,13 +62,13 @@ const ComplianceFeed: React.FC = () => {
         ))}
       </div>
 
-      <div className="mt-12 p-6 bg-emerald-50 rounded-3xl border border-emerald-100 flex items-center justify-between">
+      <div className="mt-12 p-6 bg-slate-900 rounded-3xl border border-emerald-500/20 flex items-center justify-between">
         <div>
-          <div className="text-[10px] font-black uppercase tracking-widest text-emerald-800 mb-1">Legal Engine</div>
-          <div className="text-emerald-600 font-black text-sm">v2.4 (Active)</div>
+          <div className="text-[10px] font-black uppercase tracking-widest text-emerald-500 mb-1 italic">Engine Heartbeat</div>
+          <div className="text-white font-black text-sm tracking-tighter">SECURE & SYNCED</div>
         </div>
-        <div className="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-lg shadow-emerald-200">
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5"/></svg>
+        <div className="w-10 h-10 rounded-xl bg-emerald-600/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shadow-lg">
+          <svg className="w-5 h-5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5"/></svg>
         </div>
       </div>
     </div>

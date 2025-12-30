@@ -17,12 +17,13 @@ const Pricing: React.FC<PricingProps> = ({ onSelectPlan }) => {
       description: 'Complete compliance suite for a single E-commerce storefront.',
       features: [
         'Single Store License',
+        'Expert Human Oversight',
+        'Vetted Policy Frameworks',
         'Privacy Policy (CCPA/GDPR)',
-        'Terms of Service',
+        'Terms of Service & ADA',
         'Return & Refund Policy',
-        'ADA Accessibility Statement',
-        'AI Product Compliance Scan',
-        'Automated Legal Updates'
+        'AI-Powered Risk Scans',
+        'Manual Compliance Updates'
       ],
       highlight: true
     },
@@ -33,11 +34,11 @@ const Pricing: React.FC<PricingProps> = ({ onSelectPlan }) => {
       description: 'Bespoke legal architecture for multi-store brands and complex needs.',
       features: [
         'Multi-Store Support',
-        'Everything in Store Shield',
-        'White-glove AI Setup',
-        'Dedicated Support Rep',
+        'Priority API Access',
+        'White-glove Expert Setup',
         'Custom Legal Disclosures',
-        'API Compliance Monitoring'
+        'Dedicated Account Manager',
+        'Everything in Store Shield'
       ],
       highlight: false
     }

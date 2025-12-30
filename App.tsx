@@ -4,8 +4,10 @@ import LandingPage from './components/LandingPage';
 import Dashboard from './components/Dashboard';
 import Checkout from './components/Checkout';
 import AuthModal from './components/AuthModal';
+import PublicVerify from './components/PublicVerify';
 import { UserProfile, SubscriptionPlan, BillingInterval } from './types';
 import { supabase } from './services/supabase';
+import { normalizeStoreUrl } from './services/complianceEngine';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -13,9 +15,25 @@ const App: React.FC = () => {
   const [isCheckingOut, setIsCheckingOut] = useState<{ plan: SubscriptionPlan; interval: BillingInterval } | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [initialAuthData, setInitialAuthData] = useState<{ email: string, storeUrl: string } | undefined>(undefined);
+  const [authMode, setAuthMode] = useState<'login' | 'signup' | 'forgot' | 'reset'>('login');
   const [isLoading, setIsLoading] = useState(true);
+  const [publicVerifySerial, setPublicVerifySerial] = useState<string | null>(null);
 
   useEffect(() => {
+    // Basic route handling for verification and password reset
+    const path = window.location.pathname;
+    const hash = window.location.hash;
+
+    if (path.startsWith('/verify/')) {
+      const serial = path.split('/verify/')[1];
+      if (serial) setPublicVerifySerial(serial);
+    }
+
+    if (hash && hash.includes('type=recovery')) {
+      setAuthMode('reset');
+      setIsAuthModalOpen(true);
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session?.user) {
@@ -24,12 +42,17 @@ const App: React.FC = () => {
       setIsLoading(false);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       if (session?.user) {
         mapSupabaseUser(session.user);
       } else {
         setUser(null);
+      }
+      
+      if (event === 'PASSWORD_RECOVERY') {
+        setAuthMode('reset');
+        setIsAuthModalOpen(true);
       }
     });
 
@@ -39,7 +62,7 @@ const App: React.FC = () => {
   const mapSupabaseUser = (sbUser: any) => {
     const meta = sbUser.user_metadata || {};
     const url = meta.storeUrl || '';
-    const cleanUrl = url.replace(/^(https?:\/\/)?(www\.)?/, '').split('/')[0];
+    const cleanUrl = normalizeStoreUrl(url);
     const name = cleanUrl.split('.')[0].toUpperCase() || 'MY STORE';
 
     setUser({
@@ -47,7 +70,7 @@ const App: React.FC = () => {
       email: sbUser.email || '',
       firstName: meta.firstName || '',
       lastName: meta.lastName || '',
-      storeUrl: url,
+      storeUrl: cleanUrl,
       storeName: name,
       onboarded: meta.onboarded || false,
       isPaid: meta.isPaid || false,
@@ -57,22 +80,11 @@ const App: React.FC = () => {
   };
 
   const handleStartCheckout = (plan: SubscriptionPlan, interval: BillingInterval) => {
-    if (!session) {
-      setIsAuthModalOpen(true);
-      return;
-    }
     setIsCheckingOut({ plan, interval });
   };
 
   const handleCompleteCheckout = async () => {
     if (user && isCheckingOut) {
-      const updatedMeta = {
-        ...user,
-        isPaid: true,
-        plan: isCheckingOut.plan,
-        interval: isCheckingOut.interval
-      };
-      
       await supabase.auth.updateUser({
         data: {
           isPaid: true,
@@ -80,14 +92,20 @@ const App: React.FC = () => {
           interval: isCheckingOut.interval
         }
       });
-
-      setUser(updatedMeta);
+      
+      setUser({
+        ...user,
+        isPaid: true,
+        plan: isCheckingOut.plan,
+        interval: isCheckingOut.interval
+      });
       setIsCheckingOut(null);
     }
   };
 
   const handleOpenLogin = (data?: { email: string, storeUrl: string }) => {
     setInitialAuthData(data);
+    setAuthMode(data ? 'signup' : 'login');
     setIsAuthModalOpen(true);
   };
 
@@ -97,12 +115,16 @@ const App: React.FC = () => {
     setIsCheckingOut(null);
   };
 
+  if (publicVerifySerial) {
+    return <PublicVerify serial={publicVerifySerial} onBack={() => setPublicVerifySerial(null)} />;
+  }
+
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="min-h-screen flex items-center justify-center bg-slate-900">
         <div className="flex flex-col items-center space-y-4">
           <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-emerald-600"></div>
-          <p className="text-slate-400 font-bold text-xs animate-pulse tracking-widest uppercase">Shop Shielder Initializing...</p>
+          <p className="text-slate-400 font-black text-[10px] animate-pulse tracking-[0.3em] uppercase italic">Initializing Shop Shielder Vault...</p>
         </div>
       </div>
     );
@@ -121,8 +143,12 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen">
-      {user?.isPaid ? (
-        <Dashboard user={user} onLogout={handleLogout} />
+      {session ? (
+        <Dashboard 
+          user={user!} 
+          onLogout={handleLogout} 
+          onUpgrade={() => handleStartCheckout(SubscriptionPlan.STANDARD, BillingInterval.MONTHLY)}
+        />
       ) : (
         <LandingPage 
           onLogin={handleOpenLogin} 
@@ -136,6 +162,7 @@ const App: React.FC = () => {
           onClose={() => setIsAuthModalOpen(false)} 
           initialEmail={initialAuthData?.email}
           initialStoreUrl={initialAuthData?.storeUrl}
+          initialMode={authMode}
         />
       )}
     </div>
