@@ -1,13 +1,12 @@
-
 import React, { useState, useEffect } from 'react';
-import LandingPage from './components/LandingPage';
-import Dashboard from './components/Dashboard';
-import Checkout from './components/Checkout';
-import AuthModal from './components/AuthModal';
-import PublicVerify from './components/PublicVerify';
-import { UserProfile, SubscriptionPlan, BillingInterval } from './types';
-import { supabase } from './services/supabase';
-import { normalizeStoreUrl } from './services/complianceEngine';
+import LandingPage from './components/LandingPage.tsx';
+import Dashboard from './components/Dashboard.tsx';
+import Checkout from './components/Checkout.tsx';
+import AuthModal from './components/AuthModal.tsx';
+import PublicVerify from './components/PublicVerify.tsx';
+import { UserProfile, SubscriptionPlan, BillingInterval } from './types.ts';
+import { supabase } from './services/supabase.ts';
+import { normalizeStoreUrl } from './services/complianceEngine.ts';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -20,7 +19,6 @@ const App: React.FC = () => {
   const [publicVerifySerial, setPublicVerifySerial] = useState<string | null>(null);
 
   useEffect(() => {
-    // Basic route handling for verification and password reset
     const path = window.location.pathname;
     const hash = window.location.hash;
 

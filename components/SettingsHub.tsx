@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
-import { UserProfile } from '../types';
-import { supabase } from '../services/supabase';
+import { UserProfile } from '../types.ts';
+import { supabase } from '../services/supabase.ts';
 
 interface SettingsHubProps {
   user: UserProfile;

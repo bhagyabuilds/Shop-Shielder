@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
-import { generatePrivacyPolicy } from '../services/geminiService';
-import { UserProfile } from '../types';
+import { generatePrivacyPolicy } from '../services/geminiService.ts';
+import { UserProfile } from '../types.ts';
 import { jsPDF } from 'jspdf';
 
 interface PolicyGeneratorProps {

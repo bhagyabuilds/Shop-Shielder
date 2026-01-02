@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
-import { SubscriptionPlan, BillingInterval } from '../types';
-import Pricing from './Pricing';
-import LegalOverlay from './LegalOverlay';
-import { generateStoreRiskScore } from '../services/complianceEngine';
+import { SubscriptionPlan, BillingInterval } from '../types.ts';
+import Pricing from './Pricing.tsx';
+import LegalOverlay from './LegalOverlay.tsx';
+import { generateStoreRiskScore } from '../services/complianceEngine.ts';
 
 interface LandingPageProps {
   onLogin: (initialData?: { email: string, storeUrl: string }) => void;
@@ -122,7 +121,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSelectPlan, sessio
         </div>
       </section>
 
-      {/* HOW IT WORKS SECTION */}
       <section id="how-it-works" className="py-32 bg-slate-50/50">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-20">

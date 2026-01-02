@@ -1,14 +1,14 @@
-
 import React, { useState, useEffect } from 'react';
-import { UserProfile, SubscriptionPlan, BillingInterval } from '../types';
-import ComplianceAnalyzer from './ComplianceAnalyzer';
-import PolicyGenerator from './PolicyGenerator';
-import ComplianceFeed from './ComplianceFeed';
-import LegalOverlay from './LegalOverlay';
-import DeploymentHub from './DeploymentHub';
-import SettingsHub from './SettingsHub';
-import { generateStoreRiskScore, generateBadgeSerial } from '../services/complianceEngine';
-import { supabase } from '../services/supabase';
+import { UserProfile, SubscriptionPlan, BillingInterval } from '../types.ts';
+import ComplianceAnalyzer from './ComplianceAnalyzer.tsx';
+import PolicyGenerator from './PolicyGenerator.tsx';
+import ComplianceFeed from './ComplianceFeed.tsx';
+import LegalOverlay from './LegalOverlay.tsx';
+import DeploymentHub from './DeploymentHub.tsx';
+import SettingsHub from './SettingsHub.tsx';
+import LiveComplianceOfficer from './LiveComplianceOfficer.tsx';
+import { generateStoreRiskScore, generateBadgeSerial } from '../services/complianceEngine.ts';
+import { supabase } from '../services/supabase.ts';
 
 interface DashboardProps {
   user: UserProfile;
@@ -129,7 +129,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout, onUpgrade }) => {
         </div>
       </aside>
 
-      {/* Main Content Area */}
       <main className="flex-1 flex flex-col overflow-y-auto min-h-screen relative pb-20 lg:pb-0">
         <header className="h-20 lg:h-24 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-6 lg:px-10 sticky top-0 z-40">
           <div>
@@ -193,7 +192,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout, onUpgrade }) => {
                            <p className="text-slate-700 font-mono text-[10px] uppercase tracking-wider">{verifyStep}</p>
                         </div>
                       ) : (
-                        <button onClick={handleVerifyShield} className="bg-slate-900 text-white px-10 py-5 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-2xl flex items-center space-x-3">
+                        <button onClick={handleVerifyShield} className="bg-slate-900 text-white px-10 py-5 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-xl flex items-center space-x-3">
                           <span>Run Handshake Verification</span>
                         </button>
                       )}
@@ -307,7 +306,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout, onUpgrade }) => {
         </footer>
       </main>
 
-      {/* Mobile Navigation Bar */}
       <nav className="fixed bottom-0 left-0 right-0 h-20 bg-white border-t border-slate-200 lg:hidden flex items-center justify-around px-4 z-[60] shadow-[0_-10px_20px_rgba(0,0,0,0.05)]">
         <MobileNavLink icon="🏠" label="Home" active={activeTab === 'overview'} onClick={() => setActiveTab('overview')} />
         <MobileNavLink icon="🔍" label="Scan" active={activeTab === 'analyze'} onClick={() => setActiveTab('analyze')} />
@@ -315,6 +313,8 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout, onUpgrade }) => {
         <MobileNavLink icon="🚀" label="Deploy" active={activeTab === 'deploy'} onClick={() => setActiveTab('deploy')} />
         <MobileNavLink icon="⚙️" label="More" active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} />
       </nav>
+
+      {isPaid && <LiveComplianceOfficer />}
 
       {activeLegalTab && <LegalOverlay type={activeLegalTab} onClose={() => setActiveLegalTab(null)} />}
     </div>

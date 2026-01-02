@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { analyzeProductCompliance, analyzeAccessibilitySource } from '../services/geminiService';
+import { analyzeProductCompliance, analyzeAccessibilitySource } from '../services/geminiService.ts';
 
 const ComplianceAnalyzer: React.FC = () => {
   const [activeMode, setActiveMode] = useState<'product' | 'accessibility'>('product');
