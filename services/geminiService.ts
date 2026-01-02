@@ -1,6 +1,8 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 
+// Use process.env.API_KEY directly as per global coding guidelines.
+// Assume this variable is pre-configured in the execution environment.
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
 
 export const analyzeProductCompliance = async (productInfo: string) => {

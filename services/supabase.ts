@@ -1,7 +1,16 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = 'https://hzybtjvklajqxxhcmsuk.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6eWJ0anZrbGFqcXh4aGNtc3VrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcwMTkyMzMsImV4cCI6MjA4MjU5NTIzM30.6YtO7qb2fpTGU64IQoHlhpbrAdrN3ChXlk90bTn7JEs';
+/**
+ * Shop Shielder Supabase Configuration
+ * 
+ * Accessing environment variables directly from process.env.
+ * These must be set in your Netlify dashboard for the production app to work.
+ */
+
+// Fallbacks are provided to prevent the library from throwing an 'required' error 
+// during the initialization phase if variables are missing.
+const SUPABASE_URL = (typeof process !== 'undefined' ? process.env.SUPABASE_URL : '') || 'https://placeholder.supabase.co';
+const SUPABASE_ANON_KEY = (typeof process !== 'undefined' ? process.env.SUPABASE_ANON_KEY : '') || 'placeholder-anon-key';
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
