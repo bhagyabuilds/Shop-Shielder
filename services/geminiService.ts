@@ -1,18 +1,11 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
+import { API_KEY_VAL } from './supabase.ts';
 
-// Safe helper to access environment variables without crashing if 'process' is undefined
-const getEnv = (key: string): string => {
-  try {
-    return (typeof process !== 'undefined' && process.env && process.env[key]) ? process.env[key] : '';
-  } catch {
-    return '';
-  }
-};
-
-const ai = new GoogleGenAI({ apiKey: getEnv('API_KEY') });
+const ai = new GoogleGenAI({ apiKey: API_KEY_VAL });
 
 export const analyzeProductCompliance = async (productInfo: string) => {
+  if (!API_KEY_VAL) throw new Error("Compliance Engine: API_KEY missing from environment.");
+  
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
     contents: `Act as a senior FDA/FTC compliance officer. Analyze this product info for Prop 65, safety labeling, and deceptive marketing claims. Provide a score (0-100) and structured risks. Info: ${productInfo}`,
@@ -45,6 +38,8 @@ export const analyzeProductCompliance = async (productInfo: string) => {
 };
 
 export const analyzeAccessibilitySource = async (htmlSource: string) => {
+  if (!API_KEY_VAL) throw new Error("Accessibility Engine: API_KEY missing from environment.");
+
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
     contents: `Act as a certified WCAG 2.1 Accessibility Auditor. Analyze the following HTML for Level A and AA violations. Categorize issues by element, severity, and provide the exact ARIA or HTML fix. HTML: ${htmlSource}`,
@@ -78,6 +73,8 @@ export const analyzeAccessibilitySource = async (htmlSource: string) => {
 };
 
 export const generatePrivacyPolicy = async (storeDetails: string) => {
+  if (!API_KEY_VAL) throw new Error("Policy Engine: API_KEY missing from environment.");
+
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
     contents: `Generate a high-fidelity, legally-aligned Privacy Policy for a US E-commerce store. Focus on CCPA, CPRA, and GDPR reciprocity. Context: ${storeDetails}`,

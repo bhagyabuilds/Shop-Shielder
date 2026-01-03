@@ -5,7 +5,7 @@ import Checkout from './components/Checkout.tsx';
 import AuthModal from './components/AuthModal.tsx';
 import PublicVerify from './components/PublicVerify.tsx';
 import { UserProfile, SubscriptionPlan, BillingInterval } from './types.ts';
-import { supabase } from './services/supabase.ts';
+import { supabase, isConfigured } from './services/supabase.ts';
 import { normalizeStoreUrl } from './services/complianceEngine.ts';
 
 const App: React.FC = () => {
@@ -32,13 +32,30 @@ const App: React.FC = () => {
       setIsAuthModalOpen(true);
     }
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session?.user) {
-        mapSupabaseUser(session.user);
+    // Attempt to initialize session with safety timeout
+    const initSession = async () => {
+      try {
+        if (!isConfigured) {
+          console.warn("Vault offline: Waiting for configuration.");
+          setIsLoading(false);
+          return;
+        }
+
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) throw error;
+        
+        setSession(session);
+        if (session?.user) {
+          mapSupabaseUser(session.user);
+        }
+      } catch (err) {
+        console.error("Communication error during vault handshake:", err);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
-    });
+    };
+
+    initSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
@@ -46,11 +63,6 @@ const App: React.FC = () => {
         mapSupabaseUser(session.user);
       } else {
         setUser(null);
-      }
-      
-      if (event === 'PASSWORD_RECOVERY') {
-        setAuthMode('reset');
-        setIsAuthModalOpen(true);
       }
     });
 
@@ -83,21 +95,26 @@ const App: React.FC = () => {
 
   const handleCompleteCheckout = async () => {
     if (user && isCheckingOut) {
-      await supabase.auth.updateUser({
-        data: {
+      try {
+        await supabase.auth.updateUser({
+          data: {
+            isPaid: true,
+            plan: isCheckingOut.plan,
+            interval: isCheckingOut.interval
+          }
+        });
+        
+        setUser({
+          ...user,
           isPaid: true,
           plan: isCheckingOut.plan,
           interval: isCheckingOut.interval
-        }
-      });
-      
-      setUser({
-        ...user,
-        isPaid: true,
-        plan: isCheckingOut.plan,
-        interval: isCheckingOut.interval
-      });
-      setIsCheckingOut(null);
+        });
+        setIsCheckingOut(null);
+      } catch (err) {
+        console.error("Critical Registry Update Error:", err);
+        alert("Compliance record sync failed. Please check your connection.");
+      }
     }
   };
 
@@ -108,8 +125,11 @@ const App: React.FC = () => {
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {}
     setUser(null);
+    setSession(null);
     setIsCheckingOut(null);
   };
 
@@ -122,26 +142,22 @@ const App: React.FC = () => {
       <div className="min-h-screen flex items-center justify-center bg-slate-900">
         <div className="flex flex-col items-center space-y-4">
           <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-emerald-600"></div>
-          <p className="text-slate-400 font-black text-[10px] animate-pulse tracking-[0.3em] uppercase italic">Initializing Shop Shielder Vault...</p>
+          <p className="text-slate-400 font-black text-[10px] animate-pulse tracking-[0.3em] uppercase italic">Establishing Handshake...</p>
         </div>
       </div>
     );
   }
 
-  if (isCheckingOut) {
-    return (
-      <Checkout 
-        plan={isCheckingOut.plan} 
-        interval={isCheckingOut.interval}
-        onCancel={() => setIsCheckingOut(null)}
-        onSuccess={handleCompleteCheckout}
-      />
-    );
-  }
-
   return (
     <div className="min-h-screen">
-      {session ? (
+      {isCheckingOut ? (
+        <Checkout 
+          plan={isCheckingOut.plan} 
+          interval={isCheckingOut.interval}
+          onCancel={() => setIsCheckingOut(null)}
+          onSuccess={handleCompleteCheckout}
+        />
+      ) : session ? (
         <Dashboard 
           user={user!} 
           onLogout={handleLogout} 
