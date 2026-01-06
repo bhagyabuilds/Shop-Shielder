@@ -12,6 +12,7 @@ const App: React.FC = () => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [session, setSession] = useState<any>(null);
   const [isCheckingOut, setIsCheckingOut] = useState<{ plan: SubscriptionPlan; interval: BillingInterval } | null>(null);
+  const [pendingCheckout, setPendingCheckout] = useState<{ plan: SubscriptionPlan; interval: BillingInterval } | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [initialAuthData, setInitialAuthData] = useState<{ email: string, storeUrl: string } | undefined>(undefined);
   const [authMode, setAuthMode] = useState<'login' | 'signup' | 'forgot' | 'reset'>('login');
@@ -68,6 +69,15 @@ const App: React.FC = () => {
     }
   }, []);
 
+  // Watch for Auth Success to resume pending checkout
+  useEffect(() => {
+    if (user && pendingCheckout) {
+      setIsCheckingOut(pendingCheckout);
+      setPendingCheckout(null);
+      setIsAuthModalOpen(false);
+    }
+  }, [user, pendingCheckout]);
+
   const mapSupabaseUser = (sbUser: any) => {
     const meta = sbUser.user_metadata || {};
     const url = meta.storeUrl || '';
@@ -89,7 +99,14 @@ const App: React.FC = () => {
   };
 
   const handleStartCheckout = (plan: SubscriptionPlan, interval: BillingInterval) => {
-    setIsCheckingOut({ plan, interval });
+    // MANDATORY AUTH GATE: If no user, trigger signup first
+    if (!user) {
+      setPendingCheckout({ plan, interval });
+      setAuthMode('signup');
+      setIsAuthModalOpen(true);
+    } else {
+      setIsCheckingOut({ plan, interval });
+    }
   };
 
   const handleCompleteCheckout = async () => {
@@ -98,7 +115,7 @@ const App: React.FC = () => {
       const targetPlan = isCheckingOut?.plan || SubscriptionPlan.STANDARD;
       const targetInterval = isCheckingOut?.interval || BillingInterval.YEARLY;
 
-      // If we have a real database connection and a logged-in user, update them
+      // Update Real User in Supabase
       if (isConfigured && session?.user) {
         await supabase.auth.updateUser({
           data: {
@@ -109,28 +126,14 @@ const App: React.FC = () => {
         });
       }
       
-      // Create or Update User Profile State
-      const updatedUser: UserProfile = user ? {
-        ...user,
-        isPaid: true,
-        plan: targetPlan,
-        interval: targetInterval
-      } : {
-        id: 'paid-' + Math.random().toString(36).substr(2, 9),
-        email: initialAuthData?.email || 'merchant@verified.com',
-        storeUrl: normalizeStoreUrl(initialAuthData?.storeUrl || 'your-store.com'),
-        storeName: (initialAuthData?.storeUrl || 'MY STORE').split('.')[0].toUpperCase(),
-        onboarded: false,
-        isPaid: true,
-        plan: targetPlan,
-        interval: targetInterval
-      };
-
-      setUser(updatedUser);
-      
-      // Force session state to move to Dashboard
-      if (!session) {
-        setSession({ user: { email: updatedUser.email }, isMock: true });
+      // Update local state
+      if (user) {
+        setUser({
+          ...user,
+          isPaid: true,
+          plan: targetPlan,
+          interval: targetInterval
+        });
       }
       
       setIsCheckingOut(null);
@@ -155,12 +158,13 @@ const App: React.FC = () => {
     setUser(null);
     setSession(null);
     setIsCheckingOut(null);
+    setPendingCheckout(null);
   };
 
   const handlePreviewLogin = (userData: UserProfile) => {
     setUser(userData);
     setSession({ user: { email: userData.email }, isMock: true });
-    setIsAuthModalOpen(false);
+    // Note: useEffect above will catch this 'user' change and resume checkout if pending
   };
 
   if (publicVerifySerial) {
@@ -211,7 +215,10 @@ const App: React.FC = () => {
       
       {isAuthModalOpen && (
         <AuthModal 
-          onClose={() => setIsAuthModalOpen(false)} 
+          onClose={() => {
+            setIsAuthModalOpen(false);
+            setPendingCheckout(null); // Clear pending state if they cancel auth
+          }} 
           initialEmail={initialAuthData?.email}
           initialStoreUrl={initialAuthData?.storeUrl}
           initialMode={authMode}

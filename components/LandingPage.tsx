@@ -51,6 +51,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSelectPlan, sessio
   const handleFinalUnlock = () => {
     setIsScanning(false);
     setShowScanResult(false);
+    // This triggers the mandatory signup flow in App.tsx
     onLogin({ email, storeUrl });
   };
 
