@@ -32,11 +32,9 @@ const App: React.FC = () => {
       setIsAuthModalOpen(true);
     }
 
-    // Attempt to initialize session with safety timeout
     const initSession = async () => {
       try {
         if (!isConfigured) {
-          console.warn("Vault offline: Waiting for configuration.");
           setIsLoading(false);
           return;
         }
@@ -57,16 +55,17 @@ const App: React.FC = () => {
 
     initSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setSession(session);
-      if (session?.user) {
-        mapSupabaseUser(session.user);
-      } else {
-        setUser(null);
-      }
-    });
-
-    return () => subscription.unsubscribe();
+    if (isConfigured) {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        setSession(session);
+        if (session?.user) {
+          mapSupabaseUser(session.user);
+        } else {
+          setUser(null);
+        }
+      });
+      return () => subscription.unsubscribe();
+    }
   }, []);
 
   const mapSupabaseUser = (sbUser: any) => {
@@ -94,27 +93,52 @@ const App: React.FC = () => {
   };
 
   const handleCompleteCheckout = async () => {
-    if (user && isCheckingOut) {
-      try {
+    setIsLoading(true);
+    try {
+      const targetPlan = isCheckingOut?.plan || SubscriptionPlan.STANDARD;
+      const targetInterval = isCheckingOut?.interval || BillingInterval.YEARLY;
+
+      // If we have a real database connection and a logged-in user, update them
+      if (isConfigured && session?.user) {
         await supabase.auth.updateUser({
           data: {
             isPaid: true,
-            plan: isCheckingOut.plan,
-            interval: isCheckingOut.interval
+            plan: targetPlan,
+            interval: targetInterval
           }
         });
-        
-        setUser({
-          ...user,
-          isPaid: true,
-          plan: isCheckingOut.plan,
-          interval: isCheckingOut.interval
-        });
-        setIsCheckingOut(null);
-      } catch (err) {
-        console.error("Critical Registry Update Error:", err);
-        alert("Compliance record sync failed. Please check your connection.");
       }
+      
+      // Create or Update User Profile State
+      const updatedUser: UserProfile = user ? {
+        ...user,
+        isPaid: true,
+        plan: targetPlan,
+        interval: targetInterval
+      } : {
+        id: 'paid-' + Math.random().toString(36).substr(2, 9),
+        email: initialAuthData?.email || 'merchant@verified.com',
+        storeUrl: normalizeStoreUrl(initialAuthData?.storeUrl || 'your-store.com'),
+        storeName: (initialAuthData?.storeUrl || 'MY STORE').split('.')[0].toUpperCase(),
+        onboarded: false,
+        isPaid: true,
+        plan: targetPlan,
+        interval: targetInterval
+      };
+
+      setUser(updatedUser);
+      
+      // Force session state to move to Dashboard
+      if (!session) {
+        setSession({ user: { email: updatedUser.email }, isMock: true });
+      }
+      
+      setIsCheckingOut(null);
+    } catch (err) {
+      console.error("Critical Registry Update Error:", err);
+      alert("Compliance record sync failed. Please check your connection.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -126,11 +150,17 @@ const App: React.FC = () => {
 
   const handleLogout = async () => {
     try {
-      await supabase.auth.signOut();
+      if (isConfigured) await supabase.auth.signOut();
     } catch (e) {}
     setUser(null);
     setSession(null);
     setIsCheckingOut(null);
+  };
+
+  const handlePreviewLogin = (userData: UserProfile) => {
+    setUser(userData);
+    setSession({ user: { email: userData.email }, isMock: true });
+    setIsAuthModalOpen(false);
   };
 
   if (publicVerifySerial) {
@@ -142,7 +172,7 @@ const App: React.FC = () => {
       <div className="min-h-screen flex items-center justify-center bg-slate-900">
         <div className="flex flex-col items-center space-y-4">
           <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-emerald-600"></div>
-          <p className="text-slate-400 font-black text-[10px] animate-pulse tracking-[0.3em] uppercase italic">Establishing Handshake...</p>
+          <p className="text-slate-400 font-black text-[10px] animate-pulse tracking-[0.3em] uppercase italic">Syncing with Registry...</p>
         </div>
       </div>
     );
@@ -150,6 +180,14 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen">
+      {!isConfigured && !user && (
+        <div className="fixed bottom-4 left-4 z-[2000] opacity-30 hover:opacity-100 transition-opacity">
+           <div className="bg-slate-900 text-[8px] text-slate-500 font-black px-3 py-1.5 rounded-full uppercase tracking-widest border border-slate-800">
+             Handshake Preview Mode
+           </div>
+        </div>
+      )}
+
       {isCheckingOut ? (
         <Checkout 
           plan={isCheckingOut.plan} 
@@ -177,6 +215,7 @@ const App: React.FC = () => {
           initialEmail={initialAuthData?.email}
           initialStoreUrl={initialAuthData?.storeUrl}
           initialMode={authMode}
+          onPreviewLogin={handlePreviewLogin}
         />
       )}
     </div>

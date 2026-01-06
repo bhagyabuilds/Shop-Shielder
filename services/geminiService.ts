@@ -1,10 +1,39 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { API_KEY_VAL } from './supabase.ts';
+import { API_KEY_VAL, isConfigured } from './supabase.ts';
 
-const ai = new GoogleGenAI({ apiKey: API_KEY_VAL });
+const ai = isConfigured ? new GoogleGenAI({ apiKey: API_KEY_VAL }) : null;
+
+const MOCK_PRODUCT_RISKS = {
+  score: 64,
+  risks: [
+    { category: 'Medical Claims', severity: 'Critical', message: 'Product implies FDA approval for "healing" properties without clinical citations.', recommendation: 'Revise labeling to use cosmetic "improves appearance" language instead.' },
+    { category: 'Safety Warnings', severity: 'Moderate', message: 'Small parts detected for age group 0-3 without mandatory choking hazard icons.', recommendation: 'Add standard CPSC choking hazard warning to product page.' }
+  ]
+};
+
+const MOCK_ACCESSIBILITY_ISSUES = {
+  score: 71,
+  issues: [
+    { element: '<img class="hero">', level: 'AA', severity: 'Critical', violation: 'Missing alt-text for primary visual asset.', fix: 'Add alt="A merchant checking their store analytics" to the image tag.' },
+    { element: '<button id="pay">', level: 'AA', severity: 'Moderate', violation: 'Button text has insufficient contrast ratio (2.1:1).', fix: 'Change text color to #FFFFFF and background to #059669.' }
+  ]
+};
+
+const MOCK_POLICY = `PRIVACY POLICY (PREVIEW)
+
+This is a simulated privacy policy generated in Developer Preview Mode. 
+
+1. DATA COLLECTION
+We collect your name, email, and store URL to provide compliance monitoring services.
+
+2. USAGE
+Your data is strictly used for compliance auditing.
+
+3. YOUR RIGHTS
+Under CCPA/GDPR, you have the right to request access to your data or its deletion.`;
 
 export const analyzeProductCompliance = async (productInfo: string) => {
-  if (!API_KEY_VAL) throw new Error("Compliance Engine: API_KEY missing from environment.");
+  if (!isConfigured || !ai) return MOCK_PRODUCT_RISKS;
   
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
@@ -38,7 +67,7 @@ export const analyzeProductCompliance = async (productInfo: string) => {
 };
 
 export const analyzeAccessibilitySource = async (htmlSource: string) => {
-  if (!API_KEY_VAL) throw new Error("Accessibility Engine: API_KEY missing from environment.");
+  if (!isConfigured || !ai) return MOCK_ACCESSIBILITY_ISSUES;
 
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
@@ -73,7 +102,7 @@ export const analyzeAccessibilitySource = async (htmlSource: string) => {
 };
 
 export const generatePrivacyPolicy = async (storeDetails: string) => {
-  if (!API_KEY_VAL) throw new Error("Policy Engine: API_KEY missing from environment.");
+  if (!isConfigured || !ai) return MOCK_POLICY;
 
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
