@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { SubscriptionPlan, BillingInterval } from '../types.ts';
 import Pricing from './Pricing.tsx';
 import LegalOverlay from './LegalOverlay.tsx';
+import Logo from './Logo.tsx';
 import { generateStoreRiskScore } from '../services/complianceEngine.ts';
 
 interface LandingPageProps {
@@ -77,10 +78,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSelectPlan, sessio
       
       <nav className="fixed top-0 w-full z-50 glass border-b border-slate-200/60 h-20 flex items-center px-6">
         <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
-          <div className="flex items-center space-x-2 cursor-pointer" onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})}>
-            <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center shadow-lg text-white font-black">S</div>
-            <span className="text-xl font-black text-slate-900 tracking-tighter uppercase italic">Shop Shielder</span>
-          </div>
+          <Logo 
+            className="cursor-pointer" 
+            onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} 
+          />
           
           <div className="hidden md:flex items-center space-x-10 text-sm font-black text-slate-600 uppercase tracking-widest">
             <button onClick={() => scrollToSection('how-it-works')} className="hover:text-emerald-600 transition-colors">Process</button>
@@ -182,10 +183,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSelectPlan, sessio
       <footer className="bg-slate-900 text-white pt-24 pb-12 border-t border-slate-800">
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
           <div className="md:col-span-2">
-            <div className="flex items-center space-x-2 mb-6">
-              <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center font-black">S</div>
-              <span className="text-xl font-black text-white uppercase italic">Shop Shielder</span>
-            </div>
+            <Logo theme="light" className="mb-6" />
             <p className="text-slate-400 max-w-sm font-medium leading-relaxed">Global compliance infrastructure for the modern merchant. Professional protection through hybrid AI-Human oversight.</p>
           </div>
           <div>

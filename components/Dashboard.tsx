@@ -7,6 +7,7 @@ import LegalOverlay from './LegalOverlay.tsx';
 import DeploymentHub from './DeploymentHub.tsx';
 import SettingsHub from './SettingsHub.tsx';
 import LiveComplianceOfficer from './LiveComplianceOfficer.tsx';
+import Logo from './Logo.tsx';
 import { generateStoreRiskScore, generateBadgeSerial } from '../services/complianceEngine.ts';
 import { supabase } from '../services/supabase.ts';
 
@@ -67,38 +68,75 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout, onUpgrade }) => {
     setTimeout(() => {
       setIsDownloading(false);
       const canvas = document.createElement('canvas');
-      canvas.width = 800;
-      canvas.height = 800;
+      canvas.width = 1200;
+      canvas.height = 1200;
       const ctx = canvas.getContext('2d');
       if (ctx) {
-        const grad = ctx.createLinearGradient(0, 0, 800, 800);
-        grad.addColorStop(0, '#0f172a');
-        grad.addColorStop(1, '#1e293b');
-        ctx.fillStyle = grad;
+        ctx.clearRect(0, 0, 1200, 1200);
+
+        const emerald = '#064e3b';
+        const silver = '#94a3b8';
+
+        // Background Circle
         ctx.beginPath();
-        ctx.roundRect(0, 0, 800, 800, 160);
+        ctx.arc(600, 600, 580, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
         ctx.fill();
-        ctx.strokeStyle = '#10b981';
-        ctx.lineWidth = 20;
+        ctx.strokeStyle = emerald;
+        ctx.lineWidth = 30;
         ctx.stroke();
-        ctx.fillStyle = '#10b981';
-        ctx.font = '900 300px serif';
+
+        // Draw Shield
+        const drawShield = (x: number, y: number, w: number, h: number) => {
+          ctx.beginPath();
+          ctx.moveTo(x + w / 2, y);
+          ctx.lineTo(x, y + h * 0.18);
+          ctx.lineTo(x, y + h * 0.55);
+          ctx.quadraticCurveTo(x, y + h * 0.8, x + w / 2, y + h);
+          ctx.quadraticCurveTo(x + w, y + h * 0.8, x + w, y + h * 0.55);
+          ctx.lineTo(x + w, y + h * 0.18);
+          ctx.closePath();
+          ctx.fillStyle = emerald;
+          ctx.fill();
+          
+          // Split highlight
+          ctx.beginPath();
+          ctx.moveTo(x + w / 2, y);
+          ctx.quadraticCurveTo(x + w, y + h * 0.8, x + w, y + h * 0.55);
+          ctx.lineTo(x + w, y + h * 0.18);
+          ctx.lineTo(x + w / 2, y);
+          ctx.fillStyle = 'rgba(255,255,255,0.1)';
+          ctx.fill();
+        };
+
+        drawShield(350, 300, 500, 580);
+
         ctx.textAlign = 'center';
-        ctx.fillText('🛡️', 400, 420);
-        ctx.fillStyle = 'white';
-        ctx.font = '900 48px sans-serif';
-        ctx.fillText('SHOP SHIELDER', 400, 520);
-        ctx.fillStyle = '#10b981';
-        ctx.font = 'bold 36px sans-serif';
-        ctx.fillText('VERIFIED COMPLIANT', 400, 580);
-        ctx.fillStyle = '#94a3b8';
-        ctx.font = 'bold 24px monospace';
-        ctx.fillText(`SERIAL: ${badgeSerial}`, 400, 640);
-        ctx.fillStyle = 'white';
-        ctx.font = '900 80px sans-serif';
-        ctx.fillText(new Date().getFullYear().toString(), 400, 750);
+        
+        // "SHOP"
+        ctx.font = "300 70px sans-serif";
+        ctx.fillStyle = silver;
+        ctx.letterSpacing = "10px";
+        ctx.fillText('SHOP', 600, 560);
+
+        // "SHIELDER"
+        ctx.font = "900 120px sans-serif";
+        ctx.fillStyle = '#ffffff';
+        ctx.letterSpacing = "-2px";
+        ctx.fillText('SHIELDER', 600, 710);
+
+        // Footer Text
+        ctx.font = "900 36px sans-serif";
+        ctx.fillStyle = emerald;
+        ctx.letterSpacing = "2px";
+        ctx.fillText('VERIFIED COMPLIANT MERCHANT', 600, 950);
+        
+        ctx.font = "bold 28px monospace";
+        ctx.fillStyle = '#64748b';
+        ctx.fillText(`ID: ${badgeSerial}`, 600, 1010);
+
         const link = document.createElement('a');
-        link.download = `ShopShielder-TrustBadge-${badgeSerial}.png`;
+        link.download = `TrustBadge-${badgeSerial}.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
       }
@@ -107,15 +145,9 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout, onUpgrade }) => {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col lg:flex-row selection:bg-emerald-100">
-      {/* Sidebar - Desktop */}
       <aside className="w-72 bg-white border-r border-slate-200 hidden lg:flex flex-col shadow-sm">
         <div className="p-10 flex flex-col h-full">
-          <div className="flex items-center space-x-3 mb-12">
-            <div className="w-8 h-8 bg-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-200">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-16.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
-            </div>
-            <span className="font-black tracking-tighter text-xl text-slate-900 uppercase italic">Hub</span>
-          </div>
+          <Logo className="mb-12" size="md" />
           <nav className="space-y-2 flex-1">
             <SidebarLink icon="🏠" label="Overview" active={activeTab === 'overview'} onClick={() => setActiveTab('overview')} />
             <SidebarLink icon="🔍" label="AI Analyzer" active={activeTab === 'analyze'} onClick={() => setActiveTab('analyze')} />
