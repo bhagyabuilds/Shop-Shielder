@@ -1,7 +1,9 @@
-import { GoogleGenAI, Type } from "@google/genai";
-import { API_KEY_VAL, isConfigured } from './supabase.ts';
 
-const ai = isConfigured ? new GoogleGenAI({ apiKey: API_KEY_VAL }) : null;
+import { GoogleGenAI, Type } from "@google/genai";
+import { isConfigured } from './supabase.ts';
+
+// Initialize exclusively from process.env.API_KEY as per guidelines
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 const MOCK_PRODUCT_RISKS = {
   score: 64,
@@ -33,7 +35,7 @@ Your data is strictly used for compliance auditing.
 Under CCPA/GDPR, you have the right to request access to your data or its deletion.`;
 
 export const analyzeProductCompliance = async (productInfo: string) => {
-  if (!isConfigured || !ai) return MOCK_PRODUCT_RISKS;
+  if (!isConfigured || !process.env.API_KEY) return MOCK_PRODUCT_RISKS;
   
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
@@ -63,11 +65,12 @@ export const analyzeProductCompliance = async (productInfo: string) => {
     }
   });
 
-  return JSON.parse(response.text);
+  // Accessing response.text directly as it is a getter, not a method.
+  return JSON.parse(response.text || '{}');
 };
 
 export const analyzeAccessibilitySource = async (htmlSource: string) => {
-  if (!isConfigured || !ai) return MOCK_ACCESSIBILITY_ISSUES;
+  if (!isConfigured || !process.env.API_KEY) return MOCK_ACCESSIBILITY_ISSUES;
 
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
@@ -98,11 +101,12 @@ export const analyzeAccessibilitySource = async (htmlSource: string) => {
     }
   });
 
-  return JSON.parse(response.text);
+  // Accessing response.text directly as it is a getter, not a method.
+  return JSON.parse(response.text || '{}');
 };
 
 export const generatePrivacyPolicy = async (storeDetails: string) => {
-  if (!isConfigured || !ai) return MOCK_POLICY;
+  if (!isConfigured || !process.env.API_KEY) return MOCK_POLICY;
 
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
@@ -112,7 +116,8 @@ export const generatePrivacyPolicy = async (storeDetails: string) => {
     }
   });
 
-  return response.text;
+  // Accessing response.text directly as it is a getter, not a method.
+  return response.text || '';
 };
 
 export { ai };

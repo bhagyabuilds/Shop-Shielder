@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { ai } from '../services/geminiService.ts';
 import { Modality } from '@google/genai';
@@ -13,6 +14,7 @@ const LiveComplianceOfficer: React.FC = () => {
   const sourcesRef = useRef<Set<AudioBufferSourceNode>>(new Set());
   const nextStartTimeRef = useRef<number>(0);
 
+  // Manual base64 decoding implementation as per guidelines
   const decode = (base64: string) => {
     const binaryString = atob(base64);
     const bytes = new Uint8Array(binaryString.length);
@@ -22,6 +24,7 @@ const LiveComplianceOfficer: React.FC = () => {
     return bytes;
   };
 
+  // Raw PCM audio decoding logic as per guidelines
   const decodeAudioData = async (data: Uint8Array, ctx: AudioContext, sampleRate: number, numChannels: number): Promise<AudioBuffer> => {
     const dataInt16 = new Int16Array(data.buffer);
     const frameCount = dataInt16.length / numChannels;
@@ -35,6 +38,7 @@ const LiveComplianceOfficer: React.FC = () => {
     return buffer;
   };
 
+  // Manual base64 encoding implementation as per guidelines
   const encode = (bytes: Uint8Array) => {
     let binary = '';
     for (let i = 0; i < bytes.byteLength; i++) {
@@ -64,7 +68,8 @@ const LiveComplianceOfficer: React.FC = () => {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       
       const sessionPromise = ai.live.connect({
-        model: 'gemini-2.5-flash-native-audio-preview-09-2025',
+        // Updated to the correct recommended model for native audio conversation
+        model: 'gemini-2.5-flash-native-audio-preview-12-2025',
         callbacks: {
           onopen: () => {
             setIsConnected(true);
@@ -74,15 +79,18 @@ const LiveComplianceOfficer: React.FC = () => {
             scriptProcessor.onaudioprocess = (e) => {
               const inputData = e.inputBuffer.getChannelData(0);
               const pcmBlob = createBlob(inputData);
+              // CRITICAL: initiate sendRealtimeInput after sessionPromise resolves
               sessionPromise.then(session => session.sendRealtimeInput({ media: pcmBlob }));
             };
             source.connect(scriptProcessor);
             scriptProcessor.connect(inputCtx.destination);
           },
           onmessage: async (message: any) => {
+            // Extracting audio data from modelTurn parts
             const audioData = message.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
             if (audioData) {
               setIsSpeaking(true);
+              // Use nextStartTime to track the exact end of the playback queue for gapless playback
               nextStartTimeRef.current = Math.max(nextStartTimeRef.current, outputCtx.currentTime);
               const buffer = await decodeAudioData(decode(audioData), outputCtx, 24000, 1);
               const source = outputCtx.createBufferSource();
@@ -97,7 +105,9 @@ const LiveComplianceOfficer: React.FC = () => {
               sourcesRef.current.add(source);
             }
             if (message.serverContent?.interrupted) {
-              sourcesRef.current.forEach(s => s.stop());
+              for (const source of sourcesRef.current.values()) {
+                source.stop();
+              }
               sourcesRef.current.clear();
               nextStartTimeRef.current = 0;
               setIsSpeaking(false);

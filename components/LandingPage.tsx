@@ -166,7 +166,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSelectPlan, sessio
                   <p className="text-slate-500 text-xs font-bold mb-4 bg-slate-50 py-2 rounded-xl border border-slate-100 italic">
                     AI Scan indicates critical gaps. Human-vetted templates are required for full protection.
                   </p>
-                  <RiskTeaserItem title="Privacy Policy" risk="Critical" msg="Missing updated CCPA 2024 disclosures." />
+                  <RiskTeaserItem title="Privacy Policy" risk="Critical" msg="Missing updated CCPA 2026 disclosures." />
                   <RiskTeaserItem title="ADA Accessibility" risk="Moderate" msg="Low contrast ratios detected on checkout." />
                 </div>
                 <button onClick={handleFinalUnlock} className="w-full py-6 bg-slate-900 text-white rounded-2xl font-black text-sm uppercase tracking-[0.2em] hover:bg-emerald-600 transition-all shadow-2xl">Unlock Full Compliance Report</button>
@@ -205,7 +205,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSelectPlan, sessio
         </div>
         <div className="max-w-7xl mx-auto px-6 pt-12 border-t border-slate-800">
           <div className="flex flex-col md:flex-row justify-between items-center text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 text-center md:text-left mb-8 gap-4">
-            <div>© 2024 Shop Shielder. Automated Merchant Protection.</div>
+            <div>© 2026 Shop Shielder. Automated Merchant Protection.</div>
             <div className="flex space-x-8">
               <a href="#" className="hover:text-white transition-colors">X / Twitter</a>
               <a href="#" className="hover:text-white transition-colors">LinkedIn</a>

@@ -73,7 +73,7 @@ export const generateStoreRiskScore = (url: string, isShielded: boolean = false)
  * Generates a unique trust badge serial number based on the store URL
  */
 export const generateBadgeSerial = (url: string): string => {
-  if (!url) return `SS-2024-OFFLINE`;
+  if (!url) return `SS-2026-OFFLINE`;
   const cleanUrl = normalizeStoreUrl(url);
   const currentYear = new Date().getFullYear();
   let hash = 0;
