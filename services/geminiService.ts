@@ -1,9 +1,13 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
-import { isConfigured } from './supabase.ts';
+import { isConfigured, API_KEY_VAL } from './supabase.ts';
 
-// Initialize exclusively from process.env.API_KEY as per guidelines
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+/**
+ * Gemini AI initialization.
+ * We use a proxy or a dummy key if the real one isn't present to prevent build-time crashes,
+ * but real API calls are gated by the `isConfigured` check.
+ */
+const safeApiKey = API_KEY_VAL || 'REPLACE_IN_NETLIFY_UI';
+const ai = new GoogleGenAI({ apiKey: safeApiKey });
 
 const MOCK_PRODUCT_RISKS = {
   score: 64,
@@ -35,7 +39,7 @@ Your data is strictly used for compliance auditing.
 Under CCPA/GDPR, you have the right to request access to your data or its deletion.`;
 
 export const analyzeProductCompliance = async (productInfo: string) => {
-  if (!isConfigured || !process.env.API_KEY) return MOCK_PRODUCT_RISKS;
+  if (!isConfigured || !API_KEY_VAL || API_KEY_VAL === 'REPLACE_IN_NETLIFY_UI') return MOCK_PRODUCT_RISKS;
   
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
@@ -65,12 +69,11 @@ export const analyzeProductCompliance = async (productInfo: string) => {
     }
   });
 
-  // Accessing response.text directly as it is a getter, not a method.
   return JSON.parse(response.text || '{}');
 };
 
 export const analyzeAccessibilitySource = async (htmlSource: string) => {
-  if (!isConfigured || !process.env.API_KEY) return MOCK_ACCESSIBILITY_ISSUES;
+  if (!isConfigured || !API_KEY_VAL || API_KEY_VAL === 'REPLACE_IN_NETLIFY_UI') return MOCK_ACCESSIBILITY_ISSUES;
 
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
@@ -101,12 +104,11 @@ export const analyzeAccessibilitySource = async (htmlSource: string) => {
     }
   });
 
-  // Accessing response.text directly as it is a getter, not a method.
   return JSON.parse(response.text || '{}');
 };
 
 export const generatePrivacyPolicy = async (storeDetails: string) => {
-  if (!isConfigured || !process.env.API_KEY) return MOCK_POLICY;
+  if (!isConfigured || !API_KEY_VAL || API_KEY_VAL === 'REPLACE_IN_NETLIFY_UI') return MOCK_POLICY;
 
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
@@ -116,7 +118,6 @@ export const generatePrivacyPolicy = async (storeDetails: string) => {
     }
   });
 
-  // Accessing response.text directly as it is a getter, not a method.
   return response.text || '';
 };
 

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import LandingPage from './components/LandingPage.tsx';
 import Dashboard from './components/Dashboard.tsx';
@@ -69,7 +70,6 @@ const App: React.FC = () => {
     }
   }, []);
 
-  // Watch for Auth Success to resume pending checkout
   useEffect(() => {
     if (user && pendingCheckout) {
       setIsCheckingOut(pendingCheckout);
@@ -99,7 +99,6 @@ const App: React.FC = () => {
   };
 
   const handleStartCheckout = (plan: SubscriptionPlan, interval: BillingInterval) => {
-    // MANDATORY AUTH GATE: If no user, trigger signup first
     if (!user) {
       setPendingCheckout({ plan, interval });
       setAuthMode('signup');
@@ -115,7 +114,6 @@ const App: React.FC = () => {
       const targetPlan = isCheckingOut?.plan || SubscriptionPlan.STANDARD;
       const targetInterval = isCheckingOut?.interval || BillingInterval.YEARLY;
 
-      // Update Real User in Supabase
       if (isConfigured && session?.user) {
         await supabase.auth.updateUser({
           data: {
@@ -126,7 +124,6 @@ const App: React.FC = () => {
         });
       }
       
-      // Update local state
       if (user) {
         setUser({
           ...user,
@@ -164,7 +161,6 @@ const App: React.FC = () => {
   const handlePreviewLogin = (userData: UserProfile) => {
     setUser(userData);
     setSession({ user: { email: userData.email }, isMock: true });
-    // Note: useEffect above will catch this 'user' change and resume checkout if pending
   };
 
   if (publicVerifySerial) {
@@ -184,11 +180,11 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen">
-      {!isConfigured && !user && (
-        <div className="fixed bottom-4 left-4 z-[2000] opacity-30 hover:opacity-100 transition-opacity">
-           <div className="bg-slate-900 text-[8px] text-slate-500 font-black px-3 py-1.5 rounded-full uppercase tracking-widest border border-slate-800">
-             Handshake Preview Mode
-           </div>
+      {/* Visual Debug Banner for Production Issues */}
+      {!isConfigured && (
+        <div className="bg-amber-500 text-white text-[10px] font-black uppercase tracking-[0.2em] py-2 px-4 flex justify-between items-center z-[3000] sticky top-0">
+          <span>⚠️ Handshake Connection Incomplete: Keys missing in environment.</span>
+          <span className="opacity-70">Check console for details</span>
         </div>
       )}
 
@@ -217,8 +213,9 @@ const App: React.FC = () => {
         <AuthModal 
           onClose={() => {
             setIsAuthModalOpen(false);
-            setPendingCheckout(null); // Clear pending state if they cancel auth
+            setPendingCheckout(null);
           }} 
+          /* Extract initial values from the initialAuthData state object */
           initialEmail={initialAuthData?.email}
           initialStoreUrl={initialAuthData?.storeUrl}
           initialMode={authMode}

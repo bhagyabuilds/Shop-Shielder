@@ -16,7 +16,7 @@ export interface SyncStatus {
 
 export interface RiskItem {
   id: string;
-  category: 'Privacy' | 'Accessibility' | 'Product Safety' | 'Policies';
+  category: 'Privacy' | 'Accessibility' | 'Product Safety' | 'Policies' | 'Security';
   severity: 'high' | 'medium' | 'low';
   message: string;
   recommendation: string;
