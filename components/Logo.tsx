@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 interface LogoProps {
@@ -17,7 +18,6 @@ const Logo: React.FC<LogoProps> = ({ className = '', size = 'md', theme = 'dark'
   };
 
   const shieldEmerald = '#064e3b';
-  const silverGradient = '#94a3b8';
 
   return (
     <div className={`inline-flex items-center justify-center cursor-pointer ${className}`} onClick={onClick}>
@@ -46,25 +46,25 @@ const Logo: React.FC<LogoProps> = ({ className = '', size = 'md', theme = 'dark'
         </defs>
 
         <g filter="url(#logo-shadow)">
-          {/* Main Shield Shape */}
+          {/* Main Shield Shape - Fixed with explicit spacing and comma segments */}
           <path 
-            d="M100 20 L35 45 V100 C35 145 100 185 100 185 C100 185 165 145 165 100 V45 L100 20 Z" 
+            d="M 100,20 L 35,45 V 100 C 35,145 100,185 100,185 C 100,185 165,145 165,100 V 45 L 100,20 Z" 
             fill={shieldEmerald} 
           />
           
-          {/* Right Side Lighter/Highlight */}
+          {/* Right Side Lighter/Highlight - Corrected Path Syntax for high compatibility */}
           <path 
-            d="M100 20 L165 45 V100 C165 145 100 185 V20 Z" 
+            d="M 100,20 L 165,45 V 100 C 165,145 100,185 100,185 V 20 Z" 
             fill="white" 
-            opacity="0.08" 
+            opacity="0.1" 
           />
 
           {!hideText && (
             <>
-              {/* SHOP Text - Thin Metallic Silver */}
+              {/* SHOP Text - Metallic Silver */}
               <text 
                 x="100" 
-                y="88" 
+                y="85" 
                 textAnchor="middle" 
                 fill="url(#silver-shine)" 
                 style={{ fontSize: '32px', fontWeight: 300, letterSpacing: '4px', fontFamily: "'Inter', sans-serif" }}
@@ -72,18 +72,16 @@ const Logo: React.FC<LogoProps> = ({ className = '', size = 'md', theme = 'dark'
                 SHOP
               </text>
               
-              {/* SHIELDER Text - Bold White Banner Look */}
-              <g transform="translate(0, 118)">
-                <text 
-                  x="100" 
-                  y="12" 
-                  textAnchor="middle" 
-                  fill="white"
-                  style={{ fontSize: '46px', fontWeight: 900, fontFamily: "'Inter', sans-serif", letterSpacing: '-1px' }}
-                >
-                  SHIELDER
-                </text>
-              </g>
+              {/* SHIELDER Text - Bold White */}
+              <text 
+                x="100" 
+                y="135" 
+                textAnchor="middle" 
+                fill="white"
+                style={{ fontSize: '46px', fontWeight: 900, fontFamily: "'Inter', sans-serif", letterSpacing: '-1px' }}
+              >
+                SHIELDER
+              </text>
             </>
           )}
         </g>
