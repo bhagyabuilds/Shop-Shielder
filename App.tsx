@@ -41,16 +41,17 @@ const App: React.FC = () => {
           return;
         }
 
-        const { data: { session }, error } = await supabase.auth.getSession();
+        const { data: { session: currentSession }, error } = await supabase.auth.getSession();
         if (error) throw error;
         
-        setSession(session);
-        if (session?.user) {
-          mapSupabaseUser(session.user);
+        setSession(currentSession);
+        if (currentSession?.user) {
+          mapSupabaseUser(currentSession.user);
         }
       } catch (err) {
-        // Silent error for production
+        console.warn("Vault connection deferred. Rendering public layer.");
       } finally {
+        // Guarantee loading state ends
         setIsLoading(false);
       }
     };
@@ -136,7 +137,6 @@ const App: React.FC = () => {
       setIsCheckingOut(null);
     } catch (err) {
       console.error("Critical Registry Update Error:", err);
-      alert("Compliance record sync failed. Please check your connection.");
     } finally {
       setIsLoading(false);
     }

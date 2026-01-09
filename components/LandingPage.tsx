@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { SubscriptionPlan, BillingInterval } from '../types.ts';
 import Pricing from './Pricing.tsx';
@@ -52,7 +53,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSelectPlan, sessio
   const handleFinalUnlock = () => {
     setIsScanning(false);
     setShowScanResult(false);
-    // This triggers the mandatory signup flow in App.tsx
     onLogin({ email, storeUrl });
   };
 
@@ -123,24 +123,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSelectPlan, sessio
         </div>
       </section>
 
-      <section id="how-it-works" className="py-32 bg-slate-50/50">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight mb-6 uppercase italic">The Hybrid Advantage</h2>
-            <p className="text-slate-500 font-medium max-w-2xl mx-auto">Our unique model combines the speed of Gemini AI with the critical judgment of human compliance officers.</p>
-          </div>
-          
-          <div className="grid md:grid-cols-4 gap-12 relative">
-             <div className="hidden lg:block absolute top-1/2 left-0 w-full h-0.5 bg-slate-200 -z-10 -translate-y-8"></div>
-             
-             <WorkStep number="01" title="Deep Scan" desc="Our engine performs a deterministic audit of your store's legal posture." icon="🔍" />
-             <WorkStep number="02" title="Hybrid Draft" desc="AI orchestrates custom policies which are then vetted by our expert team." icon="🤖" />
-             <WorkStep number="03" title="Manual Sync" desc="We monitor federal changes and manually push updates to your live documents." icon="🔄" />
-             <WorkStep number="04" title="Trust Verified" desc="Display a serial-tracked Trust Badge that carries the weight of expert oversight." icon="🛡️" />
-          </div>
-        </div>
-      </section>
-
       {isScanning && (
         <div className="fixed inset-0 z-[200] bg-slate-900 flex items-center justify-center p-6 overflow-hidden">
           <div className="relative w-full max-w-2xl text-center">
@@ -156,7 +138,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSelectPlan, sessio
             ) : (
               <div className="bg-white rounded-[3rem] p-12 shadow-2xl animate-in slide-in-from-bottom-12 duration-700">
                 <div className="flex items-center justify-center space-x-4 mb-8">
-                  <div className="w-20 h-20 bg-amber-50 rounded-[2rem] flex items-center justify-center text-amber-500 text-3xl font-black">{dynamicScore}%</div>
+                  <div className="w-20 h-20 bg-slate-100 text-slate-900 rounded-[2rem] flex items-center justify-center text-3xl font-black">{dynamicScore}%</div>
                   <div className="text-left">
                     <h4 className="text-slate-900 text-2xl font-black leading-none uppercase italic">Risk Identified</h4>
                     <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px] mt-1">Status: High Exposure</p>
@@ -175,6 +157,25 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSelectPlan, sessio
           </div>
         </div>
       )}
+
+      {/* ... rest of the landing page sections remain same ... */}
+      <section id="how-it-works" className="py-32 bg-slate-50/50">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-20">
+            <h2 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight mb-6 uppercase italic">The Hybrid Advantage</h2>
+            <p className="text-slate-500 font-medium max-w-2xl mx-auto">Our unique model combines the speed of Gemini AI with the critical judgment of human compliance officers.</p>
+          </div>
+          
+          <div className="grid md:grid-cols-4 gap-12 relative">
+             <div className="hidden lg:block absolute top-1/2 left-0 w-full h-0.5 bg-slate-200 -z-10 -translate-y-8"></div>
+             
+             <WorkStep number="01" title="Deep Scan" desc="Our engine performs a deterministic audit of your store's legal posture." icon="🔍" />
+             <WorkStep number="02" title="Hybrid Draft" desc="AI orchestrates custom policies which are then vetted by our expert team." icon="🤖" />
+             <WorkStep number="03" title="Manual Sync" desc="We monitor federal changes and manually push updates to your live documents." icon="🔄" />
+             <WorkStep number="04" title="Trust Verified" desc="Display a serial-tracked Trust Badge that carries the weight of expert oversight." icon="🛡️" />
+          </div>
+        </div>
+      </section>
 
       <section id="pricing" className="py-32 bg-white">
         <Pricing onSelectPlan={onSelectPlan} />
@@ -235,11 +236,11 @@ const WorkStep = ({ number, title, desc, icon }: { number: string; title: string
 
 const RiskTeaserItem = ({ title, risk, msg }: { title: string; risk: string; msg: string }) => (
   <div className="flex items-center space-x-4 text-left p-4 rounded-2xl bg-slate-50 border border-slate-100">
-    <div className={`w-1.5 h-10 rounded-full flex-shrink-0 ${risk === 'Critical' ? 'bg-red-500' : 'bg-amber-500'}`}></div>
+    <div className={`w-1.5 h-10 rounded-full flex-shrink-0 ${risk === 'Critical' ? 'bg-red-500' : 'bg-slate-500'}`}></div>
     <div className="flex-1 min-w-0">
       <div className="flex items-center justify-between">
         <span className="text-slate-900 font-black text-sm italic">{title}</span>
-        <span className={`text-[10px] font-black uppercase tracking-widest ${risk === 'Critical' ? 'text-red-500' : 'text-amber-500'}`}>{risk} Risk</span>
+        <span className={`text-[10px] font-black uppercase tracking-widest ${risk === 'Critical' ? 'text-red-500' : 'text-slate-500'}`}>{risk} Risk</span>
       </div>
       <p className="text-slate-500 text-[10px] mt-0.5 line-clamp-1 leading-tight">{msg}</p>
     </div>

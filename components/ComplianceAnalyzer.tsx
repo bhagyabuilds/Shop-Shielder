@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { analyzeProductCompliance, analyzeAccessibilitySource } from '../services/geminiService.ts';
 
@@ -79,7 +80,7 @@ const ComplianceAnalyzer: React.FC = () => {
               <h3 className="text-lg font-black uppercase italic">Official Audit Results</h3>
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Compliance Standard: {activeMode === 'product' ? 'FTC/CPSC' : 'WCAG 2.1 AA'}</p>
             </div>
-            <div className={`px-8 py-4 rounded-2xl font-black text-2xl shadow-inner ${results.score >= 80 ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
+            <div className={`px-8 py-4 rounded-2xl font-black text-2xl shadow-inner ${results.score >= 80 ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-900'}`}>
               {results.score}% <span className="text-[10px] uppercase ml-1 opacity-60">Pass Rate</span>
             </div>
           </div>
@@ -91,7 +92,7 @@ const ComplianceAnalyzer: React.FC = () => {
                   <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border ${
                     item.severity.toLowerCase() === 'high' || item.severity.toLowerCase() === 'critical' 
                       ? 'bg-red-50 text-red-600 border-red-100' 
-                      : 'bg-amber-50 text-amber-600 border-amber-100'
+                      : 'bg-slate-200 text-slate-600 border-slate-300'
                   }`}>
                     {item.severity} Risk
                   </span>

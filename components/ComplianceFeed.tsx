@@ -26,7 +26,7 @@ const ComplianceFeed: React.FC = () => {
         time: 'Just now'
       };
       setUpdates(prev => [newUpdate, ...prev.slice(0, 4)]);
-    }, 12000); // Faster updates for higher perceived value
+    }, 12000); 
     return () => clearInterval(interval);
   }, []);
 
@@ -49,7 +49,7 @@ const ComplianceFeed: React.FC = () => {
             <div className={`w-1 h-12 rounded-full flex-shrink-0 ${
               update.type === 'AUTO-SYNC' ? 'bg-emerald-500' : 
               update.type === 'POLICY' ? 'bg-blue-400' : 
-              update.type === 'SAFETY' ? 'bg-red-400' : 'bg-amber-400'
+              update.type === 'SAFETY' ? 'bg-red-400' : 'bg-slate-400'
             }`}></div>
             <div>
               <div className="flex items-center space-x-2 mb-1">
