@@ -1,13 +1,12 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
 import { isConfigured, API_KEY_VAL } from './supabase.ts';
 
 /**
  * Gemini AI initialization.
- * We use a proxy or a dummy key if the real one isn't present to prevent build-time crashes,
- * but real API calls are gated by the `isConfigured` check.
+ * Real API calls are gated by the `isConfigured` check to prevent crashes in preview.
  */
-const safeApiKey = API_KEY_VAL || 'REPLACE_IN_NETLIFY_UI';
-const ai = new GoogleGenAI({ apiKey: safeApiKey });
+const ai = new GoogleGenAI({ apiKey: API_KEY_VAL || 'PREVIEW_MODE_KEY' });
 
 const MOCK_PRODUCT_RISKS = {
   score: 64,
@@ -17,35 +16,14 @@ const MOCK_PRODUCT_RISKS = {
   ]
 };
 
-const MOCK_ACCESSIBILITY_ISSUES = {
-  score: 71,
-  issues: [
-    { element: '<img class="hero">', level: 'AA', severity: 'Critical', violation: 'Missing alt-text for primary visual asset.', fix: 'Add alt="A merchant checking their store analytics" to the image tag.' },
-    { element: '<button id="pay">', level: 'AA', severity: 'Moderate', violation: 'Button text has insufficient contrast ratio (2.1:1).', fix: 'Change text color to #FFFFFF and background to #059669.' }
-  ]
-};
-
-const MOCK_POLICY = `PRIVACY POLICY (PREVIEW)
-
-This is a simulated privacy policy generated in Developer Preview Mode. 
-
-1. DATA COLLECTION
-We collect your name, email, and store URL to provide compliance monitoring services.
-
-2. USAGE
-Your data is strictly used for compliance auditing.
-
-3. YOUR RIGHTS
-Under CCPA/GDPR, you have the right to request access to your data or its deletion.`;
-
 export const analyzeProductCompliance = async (productInfo: string) => {
-  if (!isConfigured || !API_KEY_VAL || API_KEY_VAL === 'REPLACE_IN_NETLIFY_UI') return MOCK_PRODUCT_RISKS;
+  if (!isConfigured) return MOCK_PRODUCT_RISKS;
   
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
     contents: `Act as a senior FDA/FTC compliance officer. Analyze this product info for Prop 65, safety labeling, and deceptive marketing claims. Provide a score (0-100) and structured risks. Info: ${productInfo}`,
     config: {
-      thinkingConfig: { thinkingBudget: 32768 },
+      thinkingConfig: { thinkingBudget: 16384 },
       responseMimeType: "application/json",
       responseSchema: {
         type: Type.OBJECT,
@@ -73,13 +51,13 @@ export const analyzeProductCompliance = async (productInfo: string) => {
 };
 
 export const analyzeAccessibilitySource = async (htmlSource: string) => {
-  if (!isConfigured || !API_KEY_VAL || API_KEY_VAL === 'REPLACE_IN_NETLIFY_UI') return MOCK_ACCESSIBILITY_ISSUES;
+  if (!isConfigured) return { score: 71, issues: [] };
 
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
-    contents: `Act as a certified WCAG 2.1 Accessibility Auditor. Analyze the following HTML for Level A and AA violations. Categorize issues by element, severity, and provide the exact ARIA or HTML fix. HTML: ${htmlSource}`,
+    contents: `Act as a certified WCAG 2.1 Accessibility Auditor. Analyze the following HTML for Level A and AA violations. HTML: ${htmlSource}`,
     config: {
-      thinkingConfig: { thinkingBudget: 32768 },
+      thinkingConfig: { thinkingBudget: 16384 },
       responseMimeType: "application/json",
       responseSchema: {
         type: Type.OBJECT,
@@ -90,11 +68,11 @@ export const analyzeAccessibilitySource = async (htmlSource: string) => {
             items: {
               type: Type.OBJECT,
               properties: {
-                element: { type: Type.STRING, description: "The specific HTML tag or selector" },
-                level: { type: Type.STRING, description: "WCAG Level (A, AA, AAA)" },
-                severity: { type: Type.STRING, description: "Critical, Moderate, Minor" },
-                violation: { type: Type.STRING, description: "Description of the accessibility gap" },
-                fix: { type: Type.STRING, description: "Step-by-step remediation instructions" }
+                element: { type: Type.STRING },
+                level: { type: Type.STRING },
+                severity: { type: Type.STRING },
+                violation: { type: Type.STRING },
+                fix: { type: Type.STRING }
               }
             }
           }
@@ -108,13 +86,13 @@ export const analyzeAccessibilitySource = async (htmlSource: string) => {
 };
 
 export const generatePrivacyPolicy = async (storeDetails: string) => {
-  if (!isConfigured || !API_KEY_VAL || API_KEY_VAL === 'REPLACE_IN_NETLIFY_UI') return MOCK_POLICY;
+  if (!isConfigured) return "Preview Mode: Connect Gemini API to generate legal documents.";
 
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
-    contents: `Generate a high-fidelity, legally-aligned Privacy Policy for a US E-commerce store. Focus on CCPA, CPRA, and GDPR reciprocity. Context: ${storeDetails}`,
+    contents: `Generate a high-fidelity, legally-aligned Privacy Policy for a US E-commerce store. Context: ${storeDetails}`,
     config: {
-      thinkingConfig: { thinkingBudget: 32768 }
+      thinkingConfig: { thinkingBudget: 4096 }
     }
   });
 

@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { supabase, isConfigured, SUPABASE_URL_VAL, API_KEY_VAL } from '../services/supabase.ts';
+import { supabase, isConfigured } from '../services/supabase.ts';
 import { UserProfile } from '../types.ts';
 
 interface AuthModalProps {
@@ -47,9 +48,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, initialEmail, initialSto
     setLoading(true);
     setError(null);
 
-    // Only bypass if we are CERTAIN we have no database URL
     if (!isConfigured) {
-      console.warn("Vault Unconfigured: Entering Preview Mode.");
       setTimeout(() => {
         setLoading(false);
         triggerPreviewBypass();
@@ -85,7 +84,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, initialEmail, initialSto
         onClose();
       }
     } catch (err: any) {
-      console.error("Vault Handshake Failed:", err);
       setError(err.message || "The merchant registry is currently unreachable.");
     } finally {
       setLoading(false);
@@ -120,15 +118,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, initialEmail, initialSto
             {mode === 'signup' ? 'Secure Vault Registration' : mode === 'login' ? 'Merchant Registry' : 'Access Recovery'}
           </h2>
 
-          {!isConfigured && (
-            <div className="mb-6 p-4 bg-amber-50 border border-amber-100 rounded-2xl">
-              <p className="text-[10px] font-black uppercase text-amber-700 leading-tight">
-                🧪 Preview Mode Active
-                <span className="block mt-1 font-bold text-slate-400 normal-case italic">Vault credentials not detected. Signing up will enter a simulated merchant session.</span>
-              </p>
-            </div>
-          )}
-
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
               <div className="p-4 bg-red-50 text-red-600 rounded-2xl text-[10px] font-black uppercase border border-red-100 italic">
@@ -152,25 +141,14 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, initialEmail, initialSto
             <input required type="password" value={password} onChange={e => setPassword(e.target.value)} className="w-full px-5 py-4 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-2 focus:ring-emerald-500/20 outline-none font-bold text-sm" placeholder="Access Key" />
 
             <button disabled={loading} type="submit" className="w-full py-5 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-xl disabled:opacity-50">
-              {loading ? 'Authenticating...' : isConfigured ? 'Establish Vault Access' : 'Launch Preview Mode'}
+              {loading ? 'Authenticating...' : 'Establish Vault Access'}
             </button>
           </form>
 
-          <div className="mt-8 text-center pt-6 border-t border-slate-100 flex flex-col space-y-4">
+          <div className="mt-8 text-center pt-6 border-t border-slate-100">
             <button onClick={() => setMode(mode === 'login' ? 'signup' : 'login')} className="text-[10px] font-black text-slate-400 hover:text-emerald-600 transition-colors uppercase tracking-widest italic">
               {mode === 'signup' ? 'Existing Merchant? Establish Access' : 'New Merchant? Open Vault'}
             </button>
-            
-            <div className="flex items-center justify-center space-x-6">
-              <div className="flex items-center space-x-2">
-                <div className={`w-1.5 h-1.5 rounded-full ${SUPABASE_URL_VAL ? 'bg-emerald-500' : 'bg-slate-300'}`}></div>
-                <span className="text-[8px] font-black uppercase text-slate-400 tracking-widest">Registry</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className={`w-1.5 h-1.5 rounded-full ${API_KEY_VAL ? 'bg-emerald-500' : 'bg-slate-300'}`}></div>
-                <span className="text-[8px] font-black uppercase text-slate-400 tracking-widest">AI Engine</span>
-              </div>
-            </div>
           </div>
         </div>
       </div>

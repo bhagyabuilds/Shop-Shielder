@@ -49,7 +49,7 @@ const App: React.FC = () => {
           mapSupabaseUser(session.user);
         }
       } catch (err) {
-        console.error("Communication error during vault handshake:", err);
+        // Silent error for production
       } finally {
         setIsLoading(false);
       }
@@ -172,7 +172,7 @@ const App: React.FC = () => {
       <div className="min-h-screen flex items-center justify-center bg-slate-900">
         <div className="flex flex-col items-center space-y-4">
           <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-emerald-600"></div>
-          <p className="text-slate-400 font-black text-[10px] animate-pulse tracking-[0.3em] uppercase italic">Syncing with Registry...</p>
+          <p className="text-slate-400 font-black text-[10px] animate-pulse tracking-[0.3em] uppercase italic">Establishing Secure Protocol...</p>
         </div>
       </div>
     );
@@ -180,14 +180,6 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen">
-      {/* Visual Debug Banner for Production Issues */}
-      {!isConfigured && (
-        <div className="bg-amber-500 text-white text-[10px] font-black uppercase tracking-[0.2em] py-2 px-4 flex justify-between items-center z-[3000] sticky top-0">
-          <span>⚠️ Handshake Connection Incomplete: Keys missing in environment.</span>
-          <span className="opacity-70">Check console for details</span>
-        </div>
-      )}
-
       {isCheckingOut ? (
         <Checkout 
           plan={isCheckingOut.plan} 
@@ -215,7 +207,6 @@ const App: React.FC = () => {
             setIsAuthModalOpen(false);
             setPendingCheckout(null);
           }} 
-          /* Extract initial values from the initialAuthData state object */
           initialEmail={initialAuthData?.email}
           initialStoreUrl={initialAuthData?.storeUrl}
           initialMode={authMode}
